@@ -25,12 +25,14 @@ We will endeavor to improve the existing work under the guidance of following il
 
 ## Update 2022.3.30 Some experiment results
 Here is some display of recent experiment results.
-
+img[src*="#w100"] {
+width: 1%;
+}
 ####Figure1. Accurary Under AWGN of Different SNR
-![test image size](images/2.jpg){:height="100px" width="400px"}
-
+![test image size](images/2.jpg#w100)
 ####Figure2. Accurary Under Strutucal Damage
 ![](images/3.jpg)
 
 ####Figure3. Accurary Under Strutucal Damage
 ![](images/3.jpg)
+
