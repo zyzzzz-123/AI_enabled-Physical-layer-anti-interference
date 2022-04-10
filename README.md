@@ -40,5 +40,5 @@ Here is some display of recent experiment results.
 The target schedule and work distribution of out project in the first stage is shown as followings.
 ![](images/6.jpg)
 
-###Update 2022.2 Work distribution 
+##Update 2022.2 Work distribution 
 ![](images/7.jpg)
