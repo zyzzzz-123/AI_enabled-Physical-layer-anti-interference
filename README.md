@@ -25,14 +25,20 @@ We will endeavor to improve the existing work under the guidance of following il
 
 ## Update 2022.3.30 Some experiment results
 Here is some display of recent experiment results.
-img[src*="#w100"] {
-width: 1%;
-}
 ####Figure1. Accurary Under AWGN of Different SNR
-![test image size](images/2.jpg#w100)
+![test image size](images/2.jpg)
 ####Figure2. Accurary Under Strutucal Damage
 ![](images/3.jpg)
 
-####Figure3. Accurary Under Strutucal Damage
-![](images/3.jpg)
+####Figure3. Accurary Under CFO
+![](images/4.jpg)
 
+####Figure4. Accurary Under SFO
+![](images/5.jpg)
+
+## Update 2022.3.1 Division of Tasks and Initial Realization
+The target schedule and work distribution of out project in the first stage is shown as followings.
+![](images/6.jpg)
+
+#### Work distribution
+![](images/7.jpg)
