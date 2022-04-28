@@ -10,12 +10,11 @@ def train(trainloader, net, optimizer, criterion, device, loss_vec,acc_vec, args
     EbN0_dB_train = 0.0
     net.train()
     acc = 0
-    for step, (x, y) in enumerate(trainloader):  # gives batch data
+    for step, (x, y,interf_500, interf_64) in enumerate(trainloader):  # gives batch data
         step_total +=1
         # Move batches to GPU
         x = x.to(device)
         y = y.to(device)
-
         optimizer.zero_grad()  # clear gradients for this training step
 
         # If step by step, it  will helps us export the messages at each stage and view how they evolve on Tensorboard.
@@ -57,7 +56,7 @@ def validate(net, valloader, criterion,  device, args):
     net.eval()
     acc = 0
     with torch.no_grad():
-        for step, (val_data, val_labels) in enumerate(valloader):
+        for step, (val_data, val_labels,interf_500, interf_64) in enumerate(valloader):
             step_total += 1
             val_data = val_data.to(device)
             val_labels = val_labels.to(device)

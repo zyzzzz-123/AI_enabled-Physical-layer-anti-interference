@@ -2,19 +2,31 @@ import numpy as np
 import torch
 from scipy.io import savemat
 import torch.utils.data as Data
+from channels import channel_init , channel_load
 
-
-def prepare_data(set_size, k, batch_size):
-    '''
-    trainloader, valloader and testloader are iterators used for batching, shuffling
-    and loading the data in parallel using multiprocessing workers
-    '''
+def prepare_data(args, mode):
+    """
+    to generate data and dataset dataloader to be transmittered.
+    :param args: args
+    :param mode: "train" or "val"
+    :return:
+    """
+    if (mode == "train"):
+        set_size = args.train_set_size
+        interf_500, interf_64 = channel_load(args, train_flag=True)
+    elif (mode == "val"):
+        set_size = args.val_set_size
+        interf_500, interf_64 = channel_load(args, train_flag=False)
+    else:
+        raise ("data mode error!")
+    k = args.n_source
+    batch_size = args.batch_size
     input_samples = []
     for row in range(0, set_size):
         data = np.random.binomial(n=1, p=0.5, size=(k,))
         input_samples.append(data)
     data = np.asarray(input_samples)
-    dataset = Data.TensorDataset(torch.from_numpy(data.astype('float32')), torch.from_numpy(data.astype('float32')))
+    dataset = Data.TensorDataset(torch.from_numpy(data.astype('float32')), torch.from_numpy(data.astype('float32')), interf_500, interf_64)
     loader = Data.DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True, num_workers=4)
     # labels = (torch.rand(set_size) * class_num).long()
     # data = torch.sparse.torch.eye(class_num).index_select(dim=0, index=labels)

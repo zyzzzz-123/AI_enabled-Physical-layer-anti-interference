@@ -13,6 +13,11 @@ and further realize whole anti-interference communication technology.
 **TA: MINGQI XIE**
 # Still In Process
 
+## Update 2022.4.26 Restruct Framework
+Reformation of a trivial manipulative frame, which include trainer and channel.
+We load channel data from .mat and add channel interference on them.
+
+And we are still working on adding the AF module.
 ## Update 2022.4.10 Next Stage Target
 After the base module of autoencoder and various channels has been implemented, 
 we need to add appropriate channel detection and feedback modules to our work.

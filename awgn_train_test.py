@@ -5,22 +5,26 @@ import torch.nn as nn
 from tensorboardX import SummaryWriter
 from torch.optim import lr_scheduler
 
-from models import FC_Autoencoder, cnn_Autoencoder
+from models import FC_Autoencoder, channel_ob, encoder, decoder
 from tools import EarlyStopping
 from trainer import train, validate, test
 from utils import generate_encoded_sym_dict
+from channels import channel_init
 
-
-def awgn_train(trainloader, valloader, val_set_size, device, args):
+def awgn_train(trainloader, valloader, device, args):
     # Define loggers
     log_writer_train = SummaryWriter('logs/train/')
     log_writer_val = SummaryWriter('logs/val/')
 
     # Setup the model and move it to GPU , #choice1: FC_Autoencoder   # choice2 : cnn_Autoencoder(not useful now)
-    0
     net = FC_Autoencoder(args.n_source, args.n_channel)
     # net.load_state_dict(torch.load('channelpara.ckpt'))
     net = net.to(device)
+    ob_net = channel_ob(args)
+    encoder_net = encoder(args)
+    decoder_net = decoder(args)
+    ob_net = ob_net.to(device)
+
 
     optimizer = torch.optim.Adam(net.parameters(), lr=args.learning_rate)  # optimize all network parameters
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.01)   # Decay LR by a factor of 0.01 every 7 epochs
