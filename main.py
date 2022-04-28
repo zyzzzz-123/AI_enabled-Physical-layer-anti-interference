@@ -1,6 +1,7 @@
 """
 Yuzhe Zhang;
 AI_enabled physical layer anti-interference project
+github : https://github.com/zyzzzz-123/AI_enabled-Physical-layer-anti-interference
 """
 import torch
 
