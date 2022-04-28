@@ -2,27 +2,47 @@ import torch
 
 import channels
 import numpy as np
+from channels import channel_init
 
-def train(trainloader, net, optimizer, criterion, device, loss_vec,acc_vec, args):
+def train(trainloader, net, ob_net,ob_net2, encoder, decoder, optimizer, criterion, device, loss_vec,acc_vec, args):
     step_total =0
     running_loss = 0.0
     running_corrects = 0
     EbN0_dB_train = 0.0
     net.train()
+    ob_net.train()
+    ob_net2.train()
+    encoder.train()
+    decoder.train()
     acc = 0
     for step, (x, y,interf_500, interf_64) in enumerate(trainloader):  # gives batch data
         step_total +=1
         # Move batches to GPU
         x = x.to(device)
         y = y.to(device)
-        optimizer.zero_grad()  # clear gradients for this training step
+        ## add interference to interf_500 / 64 ##
+        interf_500 = channel_init(interf_500,args,"500").to(torch.float).detach().to(device)
+        interf_64 = channel_init(interf_64, args, "64").to(torch.float).detach().to(device)
 
-        # If step by step, it  will helps us export the messages at each stage and view how they evolve on Tensorboard.
-        train_encoded_signal = net.transmitter(x)
-        # val_constrained_encoded_signal = channels.energy_constraint(val_encoded_signal, args)
-        # val_noisy_signal = channels.awgn(val_constrained_encoded_signal, args, EbN0_dB_train, device)
-        train_noisy_signal = channels.wlan(train_encoded_signal, args, device)
-        output = net.receiver(train_noisy_signal)
+        optimizer.zero_grad()  # clear gradients for this training step
+        ob_result = ob_net(interf_500)
+        ob_result2  = ob_net2(interf_500)
+        encode_input = torch.cat([ob_result,x],dim=1)
+        encoded = encoder(encode_input)
+        ## need normalization for encoded here ##
+
+        ##
+
+        trasmitted = encoded + interf_64   # add interference to signal
+        decoder_input =  torch.cat([trasmitted[:,:,0],trasmitted[:,:,1],ob_result2],dim=1)          # decoder
+        output = decoder(decoder_input)
+        print(output.shape)
+
+        # this part is last stage work
+        # train_encoded_signal = net.transmitter(x)
+        # # val_constrained_encoded_signal = channels.energy_constraint(val_encoded_signal, args)
+        # train_noisy_signal = channels.wlan(train_encoded_signal, args, device)
+        # output = net.receiver(train_noisy_signal)
 
         loss = criterion(output, y)  # Apply cross entropy loss
 

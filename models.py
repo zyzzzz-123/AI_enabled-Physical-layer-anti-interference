@@ -67,47 +67,48 @@ class encoder(nn.Module):
     """
     encoder module
     input: [bz, N_OFDM_SYMS, N_OFDM_SYMS+number_interfs]
-    output: [bz, n_channel, 1] (dtype = complex)
+    output: [bz, n_channel, 2] (dtype = float)
     """
     def __init__(self, args):
         self.args = args
 
         super(encoder, self).__init__()
         self.encoder = nn.Sequential(
-            nn.Linear(in_features=(self.args.N_OFDM_SYMS+ self.args.number_interfs), out_features=(self.args.N_OFDM_SYMS+ self.args.number_interfs), bias=True),
+            nn.Linear(in_features=(self.args.n_source+ self.args.number_interfs), out_features=(self.args.n_source+ self.args.number_interfs), bias=True),
             nn.PReLU(),
-            nn.Linear(in_features=(self.args.N_OFDM_SYMS+ self.args.number_interfs), out_features=2, bias=True),
+            nn.Linear(in_features=(self.args.n_source+ self.args.number_interfs), out_features=2, bias=True),
             )
 
 
     def forward(self, x):
-        batch_size, _ , _= x.shape
-        x = self.encoder(x)
-        out = torch.complex(x[:,:, 0], x[:, :,1]).unsqueeze(2)
-        out = torch.repeat_interleave(out, self.args.n_channel, 2)
+        batch_size, _ = x.shape
+        x = self.encoder(x).unsqueeze(1)
+        out = torch.repeat_interleave(x, self.args.n_channel, 1)
+
         return out
 
 class decoder(nn.Module):
     """
     decoder module
+    input : (n_channel + number_interfs) * 2
     """
     def __init__(self, args):
         self.args = args
 
         super(decoder, self).__init__()
         self.decoder = nn.Sequential(
-            nn.Linear(in_features=(self.args.n_channel+ self.args.number_interfs) * 2, out_features=(self.args.n_channel+ self.args.number_interfs), bias=True),
+            nn.Linear(in_features=(self.args.n_channel*2 + self.args.number_interfs), out_features=(self.args.n_channel*2 + self.args.number_interfs), bias=True),
             nn.PReLU(),
-            nn.Linear(in_features=(self.args.n_channel+ self.args.number_interfs), out_features=self.args.n_source, bias=True),
-            nn.Softmax(dim=2),
+            nn.Linear(in_features=(self.args.n_channel*2 + self.args.number_interfs), out_features=self.args.n_source, bias=True),
+            nn.Softmax(dim=1),
         )
         # self.decomplex =  nn.Sequential(
         #     nn.Linear(in_features=2, out_features=1, bias=True),
         #     nn.PReLU(),
-        # )
+        #
+
     def forward(self, x):
         batch_size, _ = x.shape
-        x = torch.cat([torch.real(x), torch.imag(x)], dim=1)            #   (n_channel + number_interfs) * 2
-        x = self.decoder(x)
-        out = torch.argmax(x,dim=2)                                     # tensor shape: [bz,1]
+        out = self.decoder(x)
+        # out = torch.argmax(x,dim=1)
         return out

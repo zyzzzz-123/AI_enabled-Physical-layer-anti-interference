@@ -21,10 +21,13 @@ def awgn_train(trainloader, valloader, device, args):
     # net.load_state_dict(torch.load('channelpara.ckpt'))
     net = net.to(device)
     ob_net = channel_ob(args)
+    ob_net2 = channel_ob(args)
     encoder_net = encoder(args)
     decoder_net = decoder(args)
     ob_net = ob_net.to(device)
-
+    ob_net2 = ob_net2.to(device)
+    encoder_net = encoder_net.to(device)
+    decoder_net = decoder_net.to(device)
 
     optimizer = torch.optim.Adam(net.parameters(), lr=args.learning_rate)  # optimize all network parameters
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.01)   # Decay LR by a factor of 0.01 every 7 epochs
@@ -37,7 +40,7 @@ def awgn_train(trainloader, valloader, device, args):
     ##########
     start = time.time()
     for epoch in range(args.epochs):
-        train_epoch_loss, train_epoch_acc = train(trainloader, net, optimizer, criterion, device, loss_vec, acc_vec,
+        train_epoch_loss, train_epoch_acc = train(trainloader, net, ob_net,ob_net2, encoder_net, decoder_net, optimizer, criterion, device, loss_vec, acc_vec,
                                                   args)
         val_loss, val_accuracy = validate(net, valloader, criterion, device, args)
         print('Epoch: ', epoch + 1, '| train loss: %.4f' % train_epoch_loss,

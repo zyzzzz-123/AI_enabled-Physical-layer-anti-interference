@@ -97,7 +97,10 @@ def channel_init(interf, args, mode):
     if (args.CFO):
         interf_real, interf_imag = CFO_mod(interf_real, interf_imag, args, mode)
 
-    return interf_real , interf_imag
+    interf_real = interf_real.unsqueeze(2)
+    interf_imag = interf_imag.unsqueeze(2)
+    interf_ret = torch.cat([interf_real,interf_imag],dim=2)
+    return interf_ret
 
 
 ### invoked by channel_init
@@ -107,9 +110,6 @@ def AWGN_mod(interf_, args, mode):
     elif (mode == "64"):
         length = 64
     m, _ = interf_.shape
-    a = np.random.normal(size=(m, length)) * args.AMP_n
-    print(interf_.shape)
-    print(a.shape)
     # interf_ += np.random.normal(size=(args.N_OFDM_SYMS, length)) * args.AMP_n
     interf_ += np.random.normal(size=(m, length)) * args.AMP_n
     return interf_
