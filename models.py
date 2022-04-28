@@ -49,9 +49,9 @@ class channel_ob(nn.Module):
         super(channel_ob, self).__init__()
         self.complex = nn.Linear(in_features=2,out_features=1,bias = True)
         self.observation = nn.Sequential(
-            nn.Linear(in_features=self.args.N_OFDM_SYMS, out_features=self.args.N_OFDM_SYMS, bias=True),
+            nn.Linear(in_features=500, out_features=500, bias=True),
             nn.PReLU(),
-            nn.Linear(in_features=self.args.N_OFDM_SYMS, out_features=self.args.number_interfs, bias=True),
+            nn.Linear(in_features=500, out_features=self.args.number_interfs, bias=True),
             )
 
     def forward(self, x):

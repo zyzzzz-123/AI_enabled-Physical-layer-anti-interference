@@ -36,7 +36,6 @@ def train(trainloader, net, ob_net,ob_net2, encoder, decoder, optimizer, criteri
         trasmitted = encoded + interf_64   # add interference to signal
         decoder_input =  torch.cat([trasmitted[:,:,0],trasmitted[:,:,1],ob_result2],dim=1)          # decoder
         output = decoder(decoder_input)
-        print(output.shape)
 
         # this part is last stage work
         # train_encoded_signal = net.transmitter(x)
