@@ -34,8 +34,8 @@ def channel_load(args, train_flag):
     :param train_flag:  True means Train; False means Test
     :return:
     """
-    address_500 = "/home/zyz/python_project/TA_project/interfsdatas/mixinterf_500_t9.mat"
-    address_64 = "/home/zyz/python_project/TA_project/interfsdatas/mixinterf_64_t9.mat"
+    address_500 = "./interfsdatas/mixinterf_500_t9.mat"
+    address_64 = "./interfsdatas/mixinterf_64_t9.mat"
     interf_500 = loadmat(address_500)
     interf_500 = interf_500["orinterf"]
     interf_64 = loadmat(address_64)
