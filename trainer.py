@@ -3,7 +3,10 @@ import torch
 import channels
 import numpy as np
 from channels import channel_init
-
+import matplotlib.pyplot as plt
+from channels import plot_fft_one_channel_complex
+from channels import channel_choose, encoded_normalize
+from utils import calculateSNR
 def train(trainloader, net, ob_net,ob_net2, encoder, decoder, optimizer, criterion, device, loss_vec,acc_vec, args):
     step_total =0
     running_loss = 0.0
@@ -26,15 +29,25 @@ def train(trainloader, net, ob_net,ob_net2, encoder, decoder, optimizer, criteri
 
         optimizer.zero_grad()  # clear gradients for this training step
         ob_result = ob_net(interf_500)
+        # print(ob_result[0])
         ob_result2  = ob_net2(interf_500)
+
         encode_input = torch.cat([ob_result,x],dim=1)
         encoded = encoder(encode_input)
+        encoded_normalized = encoded_normalize(encoded, args)
+        encoded_choose = channel_choose(encoded, args)
         ## need normalization for encoded here ##
-
+        # if (step_total % args.print_step == 0):
+        #     transmitted_complex = torch.complex(encoded[:,:,0],encoded[:,:,1])
+        #     plot_fft_one_channel_complex(transmitted_complex)
         ##
-
-        trasmitted = encoded + interf_64   # add interference to signal
-        decoder_input =  torch.cat([trasmitted[:,:,0],trasmitted[:,:,1],ob_result2],dim=1)          # decoder
+        if (step_total % args.print_step == 0):
+            calculateSNR(encoded_choose, interf_64)
+        transmitted = encoded_choose + interf_64   # add interference to signal
+        # if (step_total % args.print_step == 0):
+        #     transmitted_complex = torch.complex(transmitted[:,:,0],transmitted[:,:,1])
+        #     plot_fft_one_channel_complex(transmitted_complex)
+        decoder_input =  torch.cat([transmitted[:,:,0],transmitted[:,:,1],ob_result2],dim=1)          # decoder
         output = decoder(decoder_input)
 
         # this part is last stage work
@@ -69,7 +82,7 @@ def train(trainloader, net, ob_net,ob_net2, encoder, decoder, optimizer, criteri
     return train_epoch_loss, train_epoch_acc
 
 
-def validate(net, valloader, criterion,  device, args):
+def validate(net, ob_net,ob_net2, encoder, decoder, valloader, criterion,  device, args):
     step_total =0
     EbN0_dB_train = 0.0
     net.eval()
@@ -80,11 +93,27 @@ def validate(net, valloader, criterion,  device, args):
             val_data = val_data.to(device)
             val_labels = val_labels.to(device)
 
-            val_encoded_signal = net.transmitter(val_data)
-            # val_constrained_encoded_signal = channels.energy_constraint(val_encoded_signal, args)
-            # val_noisy_signal = channels.awgn(val_constrained_encoded_signal, args, EbN0_dB_train, device)
-            val_noisy_signal = channels.wlan(val_encoded_signal, args, device)
-            val_decoded_signal = net.receiver(val_noisy_signal)
+            ## add interference to interf_500 / 64 ##
+            interf_500 = channel_init(interf_500, args, "500").to(torch.float).detach().to(device)
+            interf_64 = channel_init(interf_64, args, "64").to(torch.float).detach().to(device)
+
+            ob_result = ob_net(interf_500)
+            ob_result2 = ob_net2(interf_500)
+            encode_input = torch.cat([ob_result, val_data], dim=1)
+            encoded = encoder(encode_input)
+            ## need normalization for encoded here ##
+
+            ##
+            trasmitted = encoded + interf_64  # add interference to signal
+            decoder_input = torch.cat([trasmitted[:, :, 0], trasmitted[:, :, 1], ob_result2], dim=1)  # decoder
+            val_decoded_signal = decoder(decoder_input)
+
+
+            # val_encoded_signal = net.transmitter(val_data)
+            # # val_constrained_encoded_signal = channels.energy_constraint(val_encoded_signal, args)
+            # # val_noisy_signal = channels.awgn(val_constrained_encoded_signal, args, EbN0_dB_train, device)
+            # val_noisy_signal = channels.wlan(val_encoded_signal, args, device)
+            # val_decoded_signal = net.receiver(val_noisy_signal)
 
             val_loss = criterion(val_decoded_signal, val_labels)  # Apply cross entropy loss
             acc += ((val_decoded_signal.detach() > 0.5) == val_labels.bool()).cpu().numpy().sum()

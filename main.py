@@ -17,8 +17,8 @@ parser.add_argument('-N_OFDM_SYMS', type=int, default=50)  # numbers of OFDM_sys
 parser.add_argument('-number_interfs', type=int, default=2)  # numbers of interference catagories
 parser.add_argument('-observe_length', type=int, default=500)  # length of channel observation
 parser.add_argument('-channel_length', type=int, default=64)  # length of channel length
-parser.add_argument('-AMP', type=float, default= 0.25)                # relative amplitude of interference
-parser.add_argument('-AMP_n', type=float, default=0.02)                # relative amplitude of AWGN
+parser.add_argument('-AMP', type=float, default= 0.001)                # relative amplitude of interference default = 0.25
+parser.add_argument('-AMP_n', type=float, default=0.0001)                # relative amplitude of AWGN
 parser.add_argument('--no-cuda', action='store_true', default=False, help='disables CUDA training')
 # parser.add_argument('-modulation', choices = ['BPSK','QPSK','8PSK','16QAM','64QAM','256QAM'], default='BPSK')
 # parser.add_argument('-coding', choices=['SingleParity_4_3','Hamming_7_4','Hamming_15_11','Polar_16_4', 'EGolay_24_12'],default='Hamming_7_4')
@@ -28,8 +28,8 @@ parser.add_argument('-val_set_size', type=int, default=3000)
 
 ### channel switches and
 parser.add_argument('-AWGN', type=bool, default=True)
-parser.add_argument('-CFO', type=bool, default=True)
-parser.add_argument('-SFO', type=bool, default=True)
+parser.add_argument('-CFO', type=bool, default=False)
+parser.add_argument('-SFO', type=bool, default=False)
 ### channel adjustment details
 parser.add_argument('-SFO_delta_max', type=float , default=0)   # SFO，采样时间偏移比例，对调制信号
 parser.add_argument('-SFO_delta_max_500', type=float , default=0)   # SFO，采样时间偏移比例，对500点干扰
@@ -48,6 +48,7 @@ parser.add_argument('-EbN0dB_test_start', type=float, default=30.0)
 parser.add_argument('-EbN0dB_test_end', type=float, default=11.5)
 parser.add_argument('-EbN0dB_precision', type=int, default=0.5)
 parser.add_argument('-epochs', type=int, default=10000)
+parser.add_argument('-print_step', type=int, default=100)
 args = parser.parse_args()
 # R = args.n_source / args.n_channel
 

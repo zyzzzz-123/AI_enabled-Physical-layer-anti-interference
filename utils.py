@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from scipy.io import savemat
 import torch.utils.data as Data
-from channels import channel_init , channel_load
+from channels import channel_load
 
 def prepare_data(args, mode):
     """
@@ -27,7 +27,7 @@ def prepare_data(args, mode):
         input_samples.append(data)
     data = np.asarray(input_samples)
     dataset = Data.TensorDataset(torch.from_numpy(data.astype('float32')), torch.from_numpy(data.astype('float32')), interf_500, interf_64)
-    loader = Data.DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+    loader = Data.DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False, num_workers=4)
     # labels = (torch.rand(set_size) * class_num).long()
     # data = torch.sparse.torch.eye(class_num).index_select(dim=0, index=labels)
     # dataset = Data.TensorDataset(data, labels)
@@ -76,3 +76,12 @@ def generate_encoded_sym_dict(n_channel, k, net, device):
 #     plt.legend(('training','validation'),loc='upper right')
 #     plt.title('train and test loss w.r.t epochs')
 #     plt.show()
+
+def calculateSNR(signal, interference):
+    signal = signal.detach().cpu().numpy()
+    interference = interference.detach().cpu().numpy()
+    signal_p = np.sum(np.abs(signal) ** 2) / 64
+    interference_p = np.sum(np.abs(interference) ** 2) / 64
+    SNR = 10 * np.log10(signal_p / interference_p)
+    print("SNR:{:.2f}".format(SNR))
+    return SNR

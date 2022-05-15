@@ -42,7 +42,7 @@ def awgn_train(trainloader, valloader, device, args):
     for epoch in range(args.epochs):
         train_epoch_loss, train_epoch_acc = train(trainloader, net, ob_net,ob_net2, encoder_net, decoder_net, optimizer, criterion, device, loss_vec, acc_vec,
                                                   args)
-        val_loss, val_accuracy = validate(net, valloader, criterion, device, args)
+        val_loss, val_accuracy = validate(net,ob_net,ob_net2, encoder_net, decoder_net,valloader, criterion, device, args)
         print('Epoch: ', epoch + 1, '| train loss: %.4f' % train_epoch_loss,
               '| train acc: %4f' % (train_epoch_acc * 100), '%', '| val loss: %.4f' % val_loss,
               '| val acc: %4f' % (val_accuracy * 100), '%')

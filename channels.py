@@ -11,6 +11,7 @@ from scipy.io import loadmat
 # Energy Constraints
 from numpy import array
 from numpy.matlib import repmat
+import matplotlib.pyplot as plt
 
 def energy_constraint(x, args):
     # Energy Constraint
@@ -34,8 +35,8 @@ def channel_load(args, train_flag):
     :param train_flag:  True means Train; False means Test
     :return:
     """
-    address_500 = "./interfsdatas/mixinterf_500_t9.mat"
-    address_64 = "./interfsdatas/mixinterf_64_t9.mat"
+    address_500 = "./interfsdatas/oneinterf_500_t9.mat"
+    address_64 = "./interfsdatas/oneinterf_64_t9.mat"
     interf_500 = loadmat(address_500)
     interf_500 = interf_500["orinterf"]
     interf_64 = loadmat(address_64)
@@ -47,31 +48,31 @@ def channel_load(args, train_flag):
         allobj = np.hstack((obj1, range((i - 1) * 1000 + 900, i * 1000)))
         obj1 = allobj
     if (train_flag):
-        interf_train_real = interf_500[:, :, 0][:25000] * args.AMP / 9
+        interf_train_real = interf_500[:, :, 0][:25000] * args.AMP
         interf_train_real = np.delete(interf_train_real, allobj, axis=0)
         interf_train_real = torch.from_numpy(interf_train_real)
-        interf_train_imag = interf_500[:, :, 1][:25000] * args.AMP / 9
+        interf_train_imag = interf_500[:, :, 1][:25000] * args.AMP
         interf_train_imag = np.delete(interf_train_imag, allobj, axis=0)
         interf_train_imag = torch.from_numpy(interf_train_imag)
         interf_500_ret = torch.complex(interf_train_real,interf_train_imag)
 
-        interf_train_real = interf_64[:, :, 0][:25000] * args.AMP / 9
+        interf_train_real = interf_64[:, :, 0][:25000] * args.AMP
         interf_train_real = np.delete(interf_train_real, allobj, axis=0)
         interf_train_real = torch.from_numpy(interf_train_real)
-        interf_train_imag = interf_64[:, :, 1][:25000] * args.AMP / 9
+        interf_train_imag = interf_64[:, :, 1][:25000] * args.AMP
         interf_train_imag = np.delete(interf_train_imag, allobj, axis=0)
         interf_train_imag = torch.from_numpy(interf_train_imag)
         interf_64_ret = torch.complex(interf_train_real, interf_train_imag)
     else:
-        interf_test_real = interf_500[:, :, 0][-3100:-100] * args.AMP / 9
+        interf_test_real = interf_500[:, :, 0][-3100:-100] * args.AMP
         interf_test_real = torch.from_numpy(interf_test_real)
-        interf_test_imag = interf_500[:, :, 1][-3100:-100] * args.AMP / 9
+        interf_test_imag = interf_500[:, :, 1][-3100:-100] * args.AMP
         interf_test_imag = torch.from_numpy(interf_test_imag)
         interf_500_ret = torch.complex(interf_test_real, interf_test_imag)
 
-        interf_test_real = interf_64[:, :, 0][-3100:-100] * args.AMP / 9
+        interf_test_real = interf_64[:, :, 0][-3100:-100] * args.AMP
         interf_test_real = torch.from_numpy(interf_test_real)
-        interf_test_imag = interf_64[:, :, 1][-3100:-100] * args.AMP / 9
+        interf_test_imag = interf_64[:, :, 1][-3100:-100] * args.AMP
         interf_test_imag = torch.from_numpy(interf_test_imag)
         interf_64_ret = torch.complex(interf_test_real, interf_test_imag)
 
@@ -86,11 +87,13 @@ def channel_init(interf, args, mode):
     :return: interf_real , interf_imag
     """
     interf_real = torch.real(interf)
-    interf_imag = torch.real(interf)
+    interf_imag = torch.imag(interf)
     if ( args.AWGN ):
         interf_real = AWGN_mod(interf_real, args, mode)
         interf_imag = AWGN_mod(interf_imag, args, mode)
-
+    # plot interf with AWGN
+    # if (mode == "64"):
+    #     plot_fft_one_channel_complex(torch.complex(interf_real,interf_imag))
     if (args.SFO):
         interf_real, interf_imag = SFO_mod(interf_real, interf_imag, args, mode)
 
@@ -229,3 +232,29 @@ def wlan(x, args, device):
     tensor_wlan = torch.from_numpy(numpy.array(total_wlan).reshape(m, l)).to(device)
     temp = x + tensor_wlan.float()
     return temp
+
+
+def plot_fft_one_channel_complex(interf):
+
+    color1 = plt.cm.tab10(5.2)  # tab(10)括号中输入随机数，生成颜色
+    interf_complex = torch.fft.fft(interf)
+    interf_complex = interf_complex[:, 8]
+    x = torch.real(interf_complex).detach().cpu().numpy()
+    y = torch.imag(interf_complex).detach().cpu().numpy()
+    plt.scatter(x, y, c=np.array(color1).reshape(1, -1))
+    plt.show()  # 显示图像
+
+def encoded_normalize(encoded,args):
+    encoded_abs = torch.abs(torch.complex(encoded[:,:,0],encoded[:,:,1]))
+    encoded_max = torch.max(encoded_abs,dim=1)[0].unsqueeze(1)
+    encoded_max = torch.repeat_interleave(encoded_max, args.n_channel, 1)
+    return encoded_max
+
+def channel_choose(encoded, args):
+    bs, a, b = encoded.shape
+    choose = torch.zeros(bs,a,b).to("cuda")
+    choose[:,8] = torch.ones(2).to("cuda")
+    encoded_choose = choose * encoded
+    return encoded_choose
+
+
