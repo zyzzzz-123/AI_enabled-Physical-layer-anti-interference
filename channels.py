@@ -264,6 +264,12 @@ def plot_fft_one_channel_2(signal1, signal2):
 
 
 def encoded_normalize(encoded,args):
+    """
+    :param encoded: ( bs, 2 )
+    :return:  encoded_normalized: (bs, 64)
+    Normalize all encoded signal to [0, 1].
+    repeat encoded from (bs , 2) to (bs, 64, 2 )
+    """
     encoded_abs = torch.abs(torch.complex(encoded[:,:,0],encoded[:,:,1]))
     encoded_max = torch.max(encoded_abs,dim=1)[0].unsqueeze(1)
     encoded_max = torch.repeat_interleave(encoded_max, args.n_channel, 1).unsqueeze(2)
@@ -273,6 +279,12 @@ def encoded_normalize(encoded,args):
     return encoded_normalized
 
 def channel_choose(encoded, args):
+    """
+    encoded : (bs, 64, 2 )
+    return : (bs, 64 , 2 )
+    if limited channels , only part of 64 is not 0.
+    ( one channel means that only [:, 8] is not 0 )
+    """
     bs, a, b = encoded.shape
     choose = torch.zeros(bs,a,b).to("cuda")
     choose[:,8] = torch.ones(2).to("cuda")

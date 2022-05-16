@@ -30,20 +30,28 @@ def train(trainloader, net, ob_net,ob_net2, encoder, decoder, optimizer, criteri
         interf_64 = channel_init(interf_64, args, "64").to(torch.float).detach().to(device)
 
         optimizer.zero_grad()  # clear gradients for this training step
+
+        ## observation net
         ob_result = ob_net(interf_500)
         ob_result2  = ob_net2(interf_500)
 
+        ## encoder
         encode_input = torch.cat([ob_result,x],dim=1)
         encoded = encoder(encode_input)                             # enocded shape: (bs, 2)
-        encoded_normalized = encoded_normalize(encoded, args)       # make encoded's max amp equals to 1.
-        encoded_choose = channel_choose(encoded_normalized, args)       # encoded_choose shape: (bs, 64, 2) only [:, 8, :] is not 0 if one channel
+
+        ## normalize // channel choose // ifft // interf add
+        encoded_normalized = encoded_normalize(encoded, args)       # make encoded's max amp equal to 1.
+        encoded_choose = channel_choose(encoded_normalized, args)       # encoded_choose shape: (bs, 64, 2). And only [:, 8, :] is not 0 if one channel
         transmitted_complex = torch.complex(encoded_choose[:, :, 0], encoded_choose[:, :, 1])
         transmitted_time = torch.fft.ifft(transmitted_complex)
         transmitted_time_ = torch.stack([torch.real(transmitted_time),torch.imag(transmitted_time)],dim=2)
         transmitted = transmitted_time_ + interf_64             # add interference to signal
-        decoder_input =  torch.cat([transmitted[:,:,0],transmitted[:,:,1],ob_result2],dim=1)          # decoder
+
+        # decoder
+        decoder_input =  torch.cat([transmitted[:,:,0],transmitted[:,:,1],ob_result2],dim=1)
         output = decoder(decoder_input)
         # torchviz.make_dot(output,params = dict(decoder.named_parameters()))
+
 
         ## plot transmitted and interf in frequency domain
         if (step_total % args.print_step == 0):
