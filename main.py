@@ -40,7 +40,7 @@ parser.add_argument('-CFO_delta_max_64', type=float , default=0) # CFO，采样�
 
 
 ####  train parameters  #####
-parser.add_argument('-learning_rate', type=float, default=1e-2)
+parser.add_argument('-learning_rate', type=float, default=1e-3)
 parser.add_argument('-batch_size', type=int, default=50)
 parser.add_argument('-dropout', type=float, default=0.0)
 parser.add_argument('-EbN0_dB_train', type=float, default=5.0)

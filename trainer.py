@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 from channels import plot_fft_one_channel_complex, plot_fft_one_channel_2
 from channels import channel_choose, encoded_normalize
 from utils import calculateSNR
+import torchviz
+
 def train(trainloader, net, ob_net,ob_net2, encoder, decoder, optimizer, criterion, device, loss_vec,acc_vec, args):
     step_total =0
     running_loss = 0.0
@@ -38,22 +40,12 @@ def train(trainloader, net, ob_net,ob_net2, encoder, decoder, optimizer, criteri
         transmitted_complex = torch.complex(encoded_choose[:, :, 0], encoded_choose[:, :, 1])
         transmitted_time = torch.fft.ifft(transmitted_complex)
         transmitted_time_ = torch.stack([torch.real(transmitted_time),torch.imag(transmitted_time)],dim=2)
-        ## need normalization for encoded here ##
-        # if (step_total % args.print_step == 0):
-        #     transmitted_complex = torch.complex(encoded[:,:,0],encoded[:,:,1])
-        #     plot_fft_one_channel_complex(transmitted_complex)
-        ##
-        transmitted = transmitted_time_ + interf_64   # add interference to signal
-        # if (step_total % args.print_step == 0):
-        #     calculateSNR(transmitted_time_, interf_64)
-        #     plot_fft_one_channel_2(transmitted_time_, interf_64)
-        #     print()
-        # if (step_total % args.print_step == 0):
-        #     transmitted_complex = torch.complex(transmitted[:,:,0],transmitted[:,:,1])
-        #     plot_fft_one_channel_complex(transmitted_complex)
+        transmitted = transmitted_time_ + interf_64             # add interference to signal
         decoder_input =  torch.cat([transmitted[:,:,0],transmitted[:,:,1],ob_result2],dim=1)          # decoder
         output = decoder(decoder_input)
+        # torchviz.make_dot(output,params = dict(decoder.named_parameters()))
 
+        ## plot transmitted and interf in frequency domain
         if (step_total % args.print_step == 0):
             calculateSNR(transmitted_time_, interf_64)
             # plot_fft_one_channel_2(transmitted_time_, interf_64)
