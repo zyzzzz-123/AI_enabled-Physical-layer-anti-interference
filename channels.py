@@ -244,11 +244,33 @@ def plot_fft_one_channel_complex(interf):
     plt.scatter(x, y, c=np.array(color1).reshape(1, -1))
     plt.show()  # 显示图像
 
+def plot_fft_one_channel_2(signal1, signal2):
+    transmitted_complex1 = torch.complex(signal1[:, :, 0], signal1[:, :, 1])
+    transmitted_complex2 = torch.complex(signal2[:, :, 0], signal2[:, :, 1])
+    color1 = plt.cm.tab10(5.2)  # tab(10)括号中输入随机数，生成颜色
+    interf_complex1 = torch.fft.fft(transmitted_complex1)
+    interf_complex1 = interf_complex1[:, 8]
+    interf_complex2 = torch.fft.fft(transmitted_complex2)
+    interf_complex2 = interf_complex2[:, 8]
+    x1 = torch.real(interf_complex1).detach().cpu().numpy()
+    y1 = torch.imag(interf_complex1).detach().cpu().numpy()
+    x2 = torch.real(interf_complex2).detach().cpu().numpy()
+    y2 = torch.imag(interf_complex2).detach().cpu().numpy()
+    plt.subplot(121)
+    plt.scatter(x1, y1, c=np.array(color1).reshape(1, -1))
+    plt.subplot(122)
+    plt.scatter(x2, y2, c=np.array(color1).reshape(1, -1))
+    plt.show()  # 显示图像
+
+
 def encoded_normalize(encoded,args):
     encoded_abs = torch.abs(torch.complex(encoded[:,:,0],encoded[:,:,1]))
     encoded_max = torch.max(encoded_abs,dim=1)[0].unsqueeze(1)
-    encoded_max = torch.repeat_interleave(encoded_max, args.n_channel, 1)
-    return encoded_max
+    encoded_max = torch.repeat_interleave(encoded_max, args.n_channel, 1).unsqueeze(2)
+    encoded_max = torch.repeat_interleave(encoded_max, 2, 2)
+    encoded_normalized = encoded / encoded_max
+    # print(torch.max(encoded_normalized,dim=1)[0])
+    return encoded_normalized
 
 def channel_choose(encoded, args):
     bs, a, b = encoded.shape

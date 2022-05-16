@@ -4,7 +4,7 @@ import channels
 import numpy as np
 from channels import channel_init
 import matplotlib.pyplot as plt
-from channels import plot_fft_one_channel_complex
+from channels import plot_fft_one_channel_complex, plot_fft_one_channel_2
 from channels import channel_choose, encoded_normalize
 from utils import calculateSNR
 def train(trainloader, net, ob_net,ob_net2, encoder, decoder, optimizer, criterion, device, loss_vec,acc_vec, args):
@@ -29,32 +29,35 @@ def train(trainloader, net, ob_net,ob_net2, encoder, decoder, optimizer, criteri
 
         optimizer.zero_grad()  # clear gradients for this training step
         ob_result = ob_net(interf_500)
-        # print(ob_result[0])
         ob_result2  = ob_net2(interf_500)
 
         encode_input = torch.cat([ob_result,x],dim=1)
-        encoded = encoder(encode_input)
-        encoded_normalized = encoded_normalize(encoded, args)
-        encoded_choose = channel_choose(encoded, args)
+        encoded = encoder(encode_input)                             # enocded shape: (bs, 2)
+        encoded_normalized = encoded_normalize(encoded, args)       # make encoded's max amp equals to 1.
+        encoded_choose = channel_choose(encoded_normalized, args)       # encoded_choose shape: (bs, 64, 2) only [:, 8, :] is not 0 if one channel
+        transmitted_complex = torch.complex(encoded_choose[:, :, 0], encoded_choose[:, :, 1])
+        transmitted_time = torch.fft.ifft(transmitted_complex)
+        transmitted_time_ = torch.stack([torch.real(transmitted_time),torch.imag(transmitted_time)],dim=2)
         ## need normalization for encoded here ##
         # if (step_total % args.print_step == 0):
         #     transmitted_complex = torch.complex(encoded[:,:,0],encoded[:,:,1])
         #     plot_fft_one_channel_complex(transmitted_complex)
         ##
-        if (step_total % args.print_step == 0):
-            calculateSNR(encoded_choose, interf_64)
-        transmitted = encoded_choose + interf_64   # add interference to signal
+        transmitted = transmitted_time_ + interf_64   # add interference to signal
+        # if (step_total % args.print_step == 0):
+        #     calculateSNR(transmitted_time_, interf_64)
+        #     plot_fft_one_channel_2(transmitted_time_, interf_64)
+        #     print()
         # if (step_total % args.print_step == 0):
         #     transmitted_complex = torch.complex(transmitted[:,:,0],transmitted[:,:,1])
         #     plot_fft_one_channel_complex(transmitted_complex)
         decoder_input =  torch.cat([transmitted[:,:,0],transmitted[:,:,1],ob_result2],dim=1)          # decoder
         output = decoder(decoder_input)
 
-        # this part is last stage work
-        # train_encoded_signal = net.transmitter(x)
-        # # val_constrained_encoded_signal = channels.energy_constraint(val_encoded_signal, args)
-        # train_noisy_signal = channels.wlan(train_encoded_signal, args, device)
-        # output = net.receiver(train_noisy_signal)
+        if (step_total % args.print_step == 0):
+            calculateSNR(transmitted_time_, interf_64)
+            # plot_fft_one_channel_2(transmitted_time_, interf_64)
+            print(output[0])
 
         loss = criterion(output, y)  # Apply cross entropy loss
 

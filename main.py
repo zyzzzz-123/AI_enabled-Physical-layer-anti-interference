@@ -40,7 +40,7 @@ parser.add_argument('-CFO_delta_max_64', type=float , default=0) # CFO，采样�
 
 
 ####  train parameters  #####
-parser.add_argument('-learning_rate', type=float, default=1e-3)
+parser.add_argument('-learning_rate', type=float, default=1e-2)
 parser.add_argument('-batch_size', type=int, default=50)
 parser.add_argument('-dropout', type=float, default=0.0)
 parser.add_argument('-EbN0_dB_train', type=float, default=5.0)
@@ -48,7 +48,7 @@ parser.add_argument('-EbN0dB_test_start', type=float, default=30.0)
 parser.add_argument('-EbN0dB_test_end', type=float, default=11.5)
 parser.add_argument('-EbN0dB_precision', type=int, default=0.5)
 parser.add_argument('-epochs', type=int, default=10000)
-parser.add_argument('-print_step', type=int, default=100)
+parser.add_argument('-print_step', type=int, default=200)
 args = parser.parse_args()
 # R = args.n_source / args.n_channel
 
