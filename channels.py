@@ -234,16 +234,6 @@ def wlan(x, args, device):
     return temp
 
 
-def plot_fft_one_channel_complex(interf):
-
-    color1 = plt.cm.tab10(5.2)  # tab(10)括号中输入随机数，生成颜色
-    interf_complex = torch.fft.fft(interf)
-    interf_complex = interf_complex[:, 8]
-    x = torch.real(interf_complex).detach().cpu().numpy()
-    y = torch.imag(interf_complex).detach().cpu().numpy()
-    plt.scatter(x, y, c=np.array(color1).reshape(1, -1))
-    plt.show()  # 显示图像
-
 def plot_fft_one_channel_2(signal1, signal2):
     transmitted_complex1 = torch.complex(signal1[:, :, 0], signal1[:, :, 1])
     transmitted_complex2 = torch.complex(signal2[:, :, 0], signal2[:, :, 1])
@@ -256,9 +246,14 @@ def plot_fft_one_channel_2(signal1, signal2):
     y1 = torch.imag(interf_complex1).detach().cpu().numpy()
     x2 = torch.real(interf_complex2).detach().cpu().numpy()
     y2 = torch.imag(interf_complex2).detach().cpu().numpy()
+
     plt.subplot(121)
+    plt.xlim(-1, 1)
+    plt.ylim(-1, 1)
     plt.scatter(x1, y1, c=np.array(color1).reshape(1, -1))
     plt.subplot(122)
+    plt.xlim(-2, 2)
+    plt.ylim(-2, 2)
     plt.scatter(x2, y2, c=np.array(color1).reshape(1, -1))
     plt.show()  # 显示图像
 
@@ -271,11 +266,10 @@ def encoded_normalize(encoded,args):
     repeat encoded from (bs , 2) to (bs, 64, 2 )
     """
     encoded_abs = torch.abs(torch.complex(encoded[:,:,0],encoded[:,:,1]))
-    encoded_max = torch.max(encoded_abs,dim=1)[0].unsqueeze(1)
-    encoded_max = torch.repeat_interleave(encoded_max, args.n_channel, 1).unsqueeze(2)
-    encoded_max = torch.repeat_interleave(encoded_max, 2, 2)
+    encoded_max = torch.max(encoded_abs,dim=1)[0].unsqueeze(1).unsqueeze(1)
+    encoded_max = encoded_max.repeat((1,64,2))
+    encoded = encoded.repeat((1,64,1))
     encoded_normalized = encoded / encoded_max
-    # print(torch.max(encoded_normalized,dim=1)[0])
     return encoded_normalized
 
 def channel_choose(encoded, args):
@@ -286,8 +280,8 @@ def channel_choose(encoded, args):
     ( one channel means that only [:, 8] is not 0 )
     """
     bs, a, b = encoded.shape
-    choose = torch.zeros(bs,a,b).to("cuda")
-    choose[:,8] = torch.ones(2).to("cuda")
+    choose = torch.zeros(bs,args.n_channel,b).to("cuda")
+    choose[:,8,:] = torch.ones(50,2)
     encoded_choose = choose * encoded
     return encoded_choose
 

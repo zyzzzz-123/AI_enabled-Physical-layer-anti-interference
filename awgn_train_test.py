@@ -5,31 +5,19 @@ import torch.nn as nn
 from tensorboardX import SummaryWriter
 from torch.optim import lr_scheduler
 
-from models import FC_Autoencoder, channel_ob, encoder, decoder
+from models import ob_autoencoder
 from tools import EarlyStopping
 from trainer import train, validate, test
-from utils import generate_encoded_sym_dict
-from channels import channel_init
 
 def awgn_train(trainloader, valloader, device, args):
     # Define loggers
     log_writer_train = SummaryWriter('logs/train/')
     log_writer_val = SummaryWriter('logs/val/')
 
-    # Setup the model and move it to GPU , #choice1: FC_Autoencoder   # choice2 : cnn_Autoencoder(not useful now)
-    net = FC_Autoencoder(args.n_source, args.n_channel)
-    # net.load_state_dict(torch.load('channelpara.ckpt'))
-    net = net.to(device)
-    ob_net = channel_ob(args)
-    ob_net2 = channel_ob(args)
-    encoder_net = encoder(args)
-    decoder_net = decoder(args)
-    ob_net = ob_net.to(device)
-    ob_net2 = ob_net2.to(device)
-    encoder_net = encoder_net.to(device)
-    decoder_net = decoder_net.to(device)
+    Ob_Autoencoder = ob_autoencoder(args)
+    Ob_Autoencoder = Ob_Autoencoder.to(device)
 
-    optimizer = torch.optim.Adam(net.parameters(), lr=args.learning_rate)  # optimize all network parameters
+    optimizer = torch.optim.Adam(Ob_Autoencoder.parameters(), lr=args.learning_rate)  # optimize all network parameters
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.01)   # Decay LR by a factor of 0.01 every 7 epochs
     criterion = nn.MSELoss()  # the target label is not one-hotted
     patience = 10  # early stopping patience; how long to wait after last time validation loss improved.
@@ -37,12 +25,12 @@ def awgn_train(trainloader, valloader, device, args):
     loss_vec = []
     acc_vec = []
     best_accuracy = 0.0
+    global_step = 0
     ##########
     start = time.time()
     for epoch in range(args.epochs):
-        train_epoch_loss, train_epoch_acc = train(trainloader, net, ob_net,ob_net2, encoder_net, decoder_net, optimizer, criterion, device, loss_vec, acc_vec,
-                                                  args)
-        val_loss, val_accuracy = validate(net,ob_net,ob_net2, encoder_net, decoder_net,valloader, criterion, device, args)
+        train_epoch_loss, train_epoch_acc,global_step= train(trainloader, Ob_Autoencoder,optimizer, criterion, global_step, device,args)
+        val_loss, val_accuracy = validate(Ob_Autoencoder,valloader, criterion, device, args)
         print('Epoch: ', epoch + 1, '| train loss: %.4f' % train_epoch_loss,
               '| train acc: %4f' % (train_epoch_acc * 100), '%', '| val loss: %.4f' % val_loss,
               '| val acc: %4f' % (val_accuracy * 100), '%')
@@ -52,7 +40,7 @@ def awgn_train(trainloader, valloader, device, args):
         log_writer_val.add_scalar('Val/Accuracy', val_accuracy, epoch)
         if val_accuracy > best_accuracy:
             best_accuracy = val_accuracy
-        early_stopping(val_loss, net)
+        early_stopping(val_loss, Ob_Autoencoder)
         if early_stopping.early_stop:
             print("Early stopping")
             break
@@ -60,10 +48,10 @@ def awgn_train(trainloader, valloader, device, args):
     time_elapsed = time.time() - start
     print('Training completed in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
 
-    torch.save(net.state_dict(), 'channelpara.ckpt')  # Save trained net
+    torch.save(Ob_Autoencoder.state_dict(), 'channelpara.ckpt')  # Save trained net
     # generate_encoded_sym_dict(args.n_channel, args.k, net, device)  # Generate encoded symbols
 
-    return net
+    return Ob_Autoencoder
 
 
 def awgn_test(testloader, net, device, args):

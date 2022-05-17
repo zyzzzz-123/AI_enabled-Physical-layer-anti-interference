@@ -13,6 +13,16 @@ and further realize whole anti-interference communication technology.
 **TA: MINGQI XIE**
 # Still In Process
 
+## Update 2022.5.17 One type One channel Situaion
+1. One channel: only 1 of 64 in *encoded* (whose physical meaning 
+is 64 channels of different frequency)
+2. One type of interference: There is only 1 pattern of the structural interference, which is 
+generated in Matlab, which means that the output size of observation is also 1.
+3. Overwrite the model and rectify some bugs. The constellation figure of encoded and interference in 
+frequency domain is shown as below.
+
+![Figure 2](Figure_one_channel_one_interference.png)
+
 ## Update 2022.4.26 Restruct Framework
 Reformation of a trivial manipulative frame, which include trainer and channel.
 We load channel data from .mat and add channel interference on them.

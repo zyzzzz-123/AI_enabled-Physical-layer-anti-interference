@@ -19,19 +19,11 @@ def prepare_data(args, mode):
         interf_500, interf_64 = channel_load(args, train_flag=False)
     else:
         raise ("data mode error!")
-    k = args.n_source
-    batch_size = args.batch_size
-    input_samples = []
-    for row in range(0, set_size):
-        data = np.random.binomial(n=1, p=0.5, size=(k,))
-        input_samples.append(data)
-    data = np.asarray(input_samples)
-    dataset = Data.TensorDataset(torch.from_numpy(data.astype('float32')), torch.from_numpy(data.astype('float32')), interf_500, interf_64)
-    loader = Data.DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False, num_workers=4)
-    # labels = (torch.rand(set_size) * class_num).long()
-    # data = torch.sparse.torch.eye(class_num).index_select(dim=0, index=labels)
-    # dataset = Data.TensorDataset(data, labels)
-    # loader = Data.DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+    class_num = args.n_source
+    label = torch.LongTensor(set_size, 1).random_() % class_num
+    data = torch.zeros(set_size, class_num).scatter_(1, label, 1)
+    dataset = Data.TensorDataset(data, data, interf_500, interf_64)
+    loader = Data.DataLoader(dataset=dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
     return dataset, loader, data
 
 
