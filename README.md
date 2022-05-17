@@ -21,7 +21,7 @@ generated in Matlab, which means that the output size of observation is also 1.
 3. Overwrite the model and rectify some bugs. The constellation figure of encoded and interference in 
 frequency domain is shown as below.
 
-![Figure 2](Figure_one_channel_one_interference.png)
+![](images/8.jpg)
 
 ## Update 2022.4.26 Restruct Framework
 Reformation of a trivial manipulative frame, which include trainer and channel.
