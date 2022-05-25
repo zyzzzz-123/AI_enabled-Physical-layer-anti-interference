@@ -17,8 +17,8 @@ parser.add_argument('-N_OFDM_SYMS', type=int, default=50)  # numbers of OFDM_sys
 parser.add_argument('-number_interfs', type=int, default=2)  # numbers of interference catagories
 parser.add_argument('-observe_length', type=int, default=500)  # length of channel observation
 parser.add_argument('-channel_length', type=int, default=64)  # length of channel length
-parser.add_argument('-AMP', type=float, default= 0.05)                # relative amplitude of interference default = 0.25
-parser.add_argument('-AMP_n', type=float, default=0.01)                # relative amplitude of AWGN
+parser.add_argument('-AMP', type=float, default= 1.0)                # relative amplitude of interference default = 0.25
+parser.add_argument('-AMP_n', type=float, default=0.05)                # relative amplitude of AWGN
 parser.add_argument('--no-cuda', action='store_true', default=False, help='disables CUDA training')
 # parser.add_argument('-modulation', choices = ['BPSK','QPSK','8PSK','16QAM','64QAM','256QAM'], default='BPSK')
 # parser.add_argument('-coding', choices=['SingleParity_4_3','Hamming_7_4','Hamming_15_11','Polar_16_4', 'EGolay_24_12'],default='Hamming_7_4')
@@ -48,7 +48,7 @@ parser.add_argument('-EbN0dB_test_start', type=float, default=30.0)
 parser.add_argument('-EbN0dB_test_end', type=float, default=11.5)
 parser.add_argument('-EbN0dB_precision', type=int, default=0.5)
 parser.add_argument('-epochs', type=int, default=10000)
-parser.add_argument('-print_step', type=int, default=2000)
+parser.add_argument('-print_step', type=int, default=2)
 args = parser.parse_args()
 # R = args.n_source / args.n_channel
 

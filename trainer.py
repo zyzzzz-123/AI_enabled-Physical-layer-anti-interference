@@ -19,6 +19,7 @@ def train(trainloader,Ob_Autoencoder, optimizer, criterion,global_step, device, 
     EbN0_dB_train = 0.0
     Ob_Autoencoder.train()
     acc = 0
+    writer = SummaryWriter(logdir = "log")
     for step, (x, y,interf_500, interf_64) in enumerate(trainloader):  # gives batch data
         step_total +=1
         global_step +=1
@@ -32,13 +33,13 @@ def train(trainloader,Ob_Autoencoder, optimizer, criterion,global_step, device, 
 
         optimizer.zero_grad()  # clear gradients for this training step
 
-        output = Ob_Autoencoder(x, interf_500_1 , interf_500_2, interf_64, global_step)
+        output = Ob_Autoencoder(x, interf_500_1 , interf_500_2, interf_64, global_step, device=device)
 
         # if (step_total == 1):
         #     with SummaryWriter('net') as w:
         #         w.add_graph(Ob_Autoencoder, input_to_model=(x, interf_64))
         loss = criterion(output, y)  # Apply cross entropy loss
-
+        writer.add_scalar('loss', step_total,loss)
         # Backward and optimize
         loss.backward()  # back propagation, compute gradients
         optimizer.step()  # apply gradients
@@ -74,7 +75,7 @@ def validate(Ob_Autoencoder, valloader, criterion,  device, args):
             interf_500_2 = channel_init(interf_500, args, "500").to(torch.float).detach().to(device)
             interf_64 = channel_init(interf_64, args, "64").to(torch.float).detach().to(device)
 
-            output = Ob_Autoencoder(val_data, interf_500_1, interf_500_2,interf_64, step_total)
+            output = Ob_Autoencoder(val_data, interf_500_1, interf_500_2,interf_64, step_total,device)
 
             val_loss = criterion(output, val_labels)  # Apply cross entropy loss
             acc += ((output.detach() > 0.5) == val_labels.bool()).cpu().numpy().sum()

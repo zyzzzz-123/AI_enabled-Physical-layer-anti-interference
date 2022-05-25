@@ -35,8 +35,8 @@ def channel_load(args, train_flag):
     :param train_flag:  True means Train; False means Test
     :return:
     """
-    address_500 = "./interfsdatas/oneinterf_500_t9.mat"
-    address_64 = "./interfsdatas/oneinterf_64_t9.mat"
+    address_500 = "./interfsdatas/twointerf_500_t9.mat"
+    address_64 = "./interfsdatas/twointerf_64_t9.mat"
     interf_500 = loadmat(address_500)
     interf_500 = interf_500["orinterf"]
     interf_64 = loadmat(address_64)
@@ -272,7 +272,7 @@ def encoded_normalize(encoded,args):
     encoded_normalized = encoded / encoded_max
     return encoded_normalized
 
-def channel_choose(encoded, args):
+def channel_choose(encoded, args, device):
     """
     encoded : (bs, 64, 2 )
     return : (bs, 64 , 2 )
@@ -280,9 +280,16 @@ def channel_choose(encoded, args):
     ( one channel means that only [:, 8] is not 0 )
     """
     bs, a, b = encoded.shape
-    choose = torch.zeros(bs,args.n_channel,b).to("cuda")
+    choose = torch.zeros(bs,args.n_channel,b).to(device)
     choose[:,8,:] = torch.ones(50,2)
     encoded_choose = choose * encoded
     return encoded_choose
+
+def ob_to_one_hot(ob_result, device):
+    batch_size, ob_length = ob_result.shape
+    ob_max = torch.max(ob_result,dim=1)[1].unsqueeze(1).to(device)
+    ob_one_hot = torch.zeros(batch_size, ob_length, device = device).scatter_(1, ob_max, 1)
+    ob_one_hot_return = ob_result + (ob_one_hot - ob_result).detach()
+    return ob_one_hot_return
 
 
