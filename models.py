@@ -74,9 +74,12 @@ class ob_autoencoder(nn.Module):
         # plot transmitted and interf in frequency domain
         if ((step_total > self.args.print_step*1000 ) and (step_total % self.args.print_step == 0)):
             calculateSNR(transmitted_time_, interf_64)
-            print(torch.argmax(ob_one_hot1, dim=1)[:10])
+            # print(torch.argmax(ob_one_hot1, dim=1)[:10])
             # print(ob_one_hot1[:10])
-            print(torch.sum(torch.argmax(ob_one_hot1,dim=1)))
+            # print(ob_one_hot2[:10])
+            print("ob1:{}".format(torch.sum(torch.argmax(ob_one_hot1,dim=1))))
+            print("ob2:{}".format(torch.sum(torch.argmax(ob_one_hot2,dim=1))))
+            # print(torch.sum(torch.argmax(ob_one_hot2,dim=1)))
             # plot_fft_one_channel_2(transmitted_time_, interf_64)
 
         return output
